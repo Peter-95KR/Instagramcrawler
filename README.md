@@ -18,7 +18,7 @@ Instagram 포스트 및 릴스(Reels) 데이터 수집 도구입니다.
 - **기술적 특징**
   - Playwright 기반
   - 자동 로그인
-  - Xpath 변경시 파일 수정 필요
+  - Xpath 변경시 코드 업데이트 필요
 
 ## 요구사항
 - Python 3.8 이상
@@ -38,11 +38,21 @@ Instagram 포스트 및 릴스(Reels) 데이터 수집 도구입니다.
 python crawler.py --url "https://www.instagram.com/p/POSTID/"
 ```
 
+일반 포스트 수집 (조회수 추출 과정 없음):
+```bash
+python crawler.py --url "https://www.instagram.com/p/POSTID/" --type post
+```
+
+릴스 수집 (조회수 추출 과정 포함):
+```bash
+python crawler.py --url "https://www.instagram.com/reel/POSTID/" --type reels
+```
+
 ### 로그인 및 모든 데이터 수집
 
 댓글과 조회수를 포함한 전체 데이터 수집:
 ```bash
-python crawler.py --username "your_username" --password "your_password" --url "https://www.instagram.com/p/POSTID/"
+python crawler.py --username "your_username" --password "your_password" --url "https://www.instagram.com/p/POSTID/" --type reels
 ```
 
 ### 커맨드라인 매개변수
@@ -52,6 +62,9 @@ python crawler.py --username "your_username" --password "your_password" --url "h
 - `-url`, `--url`: 인스타그램 포스트 URL (reel/reels/p 형식 모두 지원)
 - `-o`, `--output`: 출력 JSON 파일 이름 (기본값: instagram_data.json)
 - `--no-log`: 로그 파일 생성 비활성화 (로그가 콘솔에만 출력됨)
+- `-t`, `--type`: 컨텐츠 타입 선택 (post 또는 reels, 기본값: reels)
+  - reels: 조회수 추출 과정을 포함
+  - post: 조회수 추출 과정을 건너뜀
 
 ### 대화형 실행
 
@@ -65,7 +78,7 @@ python crawler.py
 - `module/getinfo.py`: 포스트 기본 정보 수집 (로그인 필요 없음)
 - `module/login.py`: 인스타그램 로그인 처리 및 세션 관리
 - `module/comment.py`: 인스타그램 댓글 수집 및 구조화
-- `module/findview.py`: 릴 조회수 탐색 및 추출
+- `module/findview.py`: 릴스 조회수 탐색 및 추출
 
 ## URL 형식 지원
 
