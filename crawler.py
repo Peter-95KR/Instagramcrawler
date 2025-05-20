@@ -9,7 +9,7 @@ import time
 import datetime
 import sys
 
-# Import modules
+# 모듈 가져오기
 from module.getinfo import get_post_info, normalize_instagram_url, save_to_json, setup_logging
 from module.login import instagram_login
 from module.comment import collect_instagram_comments
@@ -17,7 +17,7 @@ from module.findview import find_post_views
 
 
 def main():
-    # Command line arguments setup
+    # 명령행 인자 설정
     parser = argparse.ArgumentParser(description='Instagram Post Data Collector')
     parser.add_argument('-u', '--username', help='Instagram username')
     parser.add_argument('-p', '--password', help='Instagram password')
@@ -27,31 +27,31 @@ def main():
     
     args = parser.parse_args()
     
-    # Logger setup
+    # 로거 설정
     log_file = None if args.no_log else 'instagram_scraping.log'
     logger = setup_logging(log_file)
     print("Instagram crawler started")
     
-    # Process input values
+    # 입력값 처리
     username = args.username
     password = args.password
     url = args.url
     output_file = args.output
     
-    # Get URL interactively if not provided via command line
+    # 명령행으로 URL이 제공되지 않은 경우 대화식으로 입력받기
     if not url:
         url = input("Enter Instagram post URL: ")
     
-    # URL validation
+    # URL 유효성 검사
     if not url or "instagram.com" not in url:
         print("Valid Instagram URL is required.")
         sys.exit(1)
     
-    # URL normalization (reel/reels -> p format)
+    # URL 정규화 (reel/reels -> p 형식)
     url = normalize_instagram_url(url)
     print(f"Processing URL: {url}")
     
-    # Check if login is needed
+    # 로그인 필요 여부 확인
     need_login = False
     if username and password:
         need_login = True
@@ -62,7 +62,7 @@ def main():
             password = input("Enter Instagram password: ")
             need_login = True
     
-    # Initialize result data structure
+    # 결과 데이터 구조 초기화
     result_data = {
         "post_info": None,
         "comments": None,
@@ -72,7 +72,7 @@ def main():
         }
     }
     
-    # Step 1: Collect post information (no login required)
+    # 1단계: 게시물 정보 수집 (로그인 불필요)
     print("\n1. Collecting basic post information...")
     post_info = get_post_info(url, logger)
     
@@ -86,18 +86,18 @@ def main():
     print(f"Likes: {post_info['likes']}")
     print(f"Comments: {post_info['comments_count']}")
     
-    # Add post info to result data
+    # 결과 데이터에 게시물 정보 추가
     result_data["post_info"] = post_info
     
-    # Step 2: Login, find view count, and collect comments (in the same browser session)
+    # 2단계: 로그인, 조회수 확인, 댓글 수집 (같은 브라우저 세션에서)
     if need_login:
         print("\n2. Logging into Instagram...")
         
         with sync_playwright() as p:
-            # Setup browser with stable session handling
+            # 안정적인 세션 처리를 위한 브라우저 설정
             browser = p.chromium.launch(headless=False)
             
-            # Configure context with proper session handling - using Asia/Seoul timezone
+            # 적절한 세션 처리를 위한 컨텍스트 구성 - Asia/Seoul 시간대 사용
             context = browser.new_context(
                 viewport={"width": 1280, "height": 800},
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -106,7 +106,7 @@ def main():
                 accept_downloads=True
             )
             
-            # Set cookies to improve session stability (allow all cookies)
+            # 세션 안정성 향상을 위한 쿠키 설정 (모든 쿠키 허용)
             context.add_cookies([{
                 "name": "ig_cb", 
                 "value": "1",
@@ -114,11 +114,11 @@ def main():
                 "path": "/",
             }])
             
-            # Create page with proper session handling
+            # 적절한 세션 처리를 위한 페이지 생성
             page = context.new_page()
             
             try:
-                # Login first
+                # 먼저 로그인 수행
                 login_success = instagram_login(page, username, password)
                 
                 if not login_success:
@@ -126,29 +126,29 @@ def main():
                 else:
                     print("Login successful!")
                     
-                    # Step 3: Find view count after login
+                    # 3단계: 로그인 후 조회수 확인
                     print("\n3. Finding view count for the post...")
                     view_count = None
                     
                     if post_info["username"]:
                         print(f"Looking for post {post_info['post_id']} in profile of {post_info['username']}...")
                         
-                        # Navigate to user's reels page
+                        # 사용자의 릴스 페이지로 이동
                         print("Going to user's reels page...")
                         profile_url = f"https://www.instagram.com/{post_info['username']}/reels/"
                         
-                        # First, visit the Instagram homepage to ensure cookies are properly set
+                        # 먼저 쿠키가 제대로 설정되도록 인스타그램 홈페이지 방문
                         page.goto("https://www.instagram.com/")
                         print("Visited homepage to maintain session")
                         time.sleep(2)
                         
-                        # Now navigate to the profile page
+                        # 이제 프로필 페이지로 이동
                         print(f"Navigating to: {profile_url}")
                         page.goto(profile_url)
                         print("Waiting 5 seconds for page to load...")
                         time.sleep(5)  # Longer wait for better stability
                         
-                        # Find mount ID
+                        # mount ID 찾기
                         mount_elements = page.query_selector_all('[id^="mount_"]')
                         mount_id = None
                         
@@ -159,14 +159,14 @@ def main():
                         
                         print(f"Using mount ID: {mount_id}")
                         
-                        # Search for the post with the given post_id
+                        # 주어진 post_id로 게시물 검색
                         found_post = False
                         max_scrolls = 5
                         scroll_count = 0
                         post_link_element = None
                         
                         while not found_post and scroll_count < max_scrolls:
-                            # Find all links on the current page
+                            # 현재 페이지의 모든 링크 찾기
                             all_links = page.query_selector_all("a")
                             
                             for link in all_links:
@@ -178,7 +178,7 @@ def main():
                                     break
                             
                             if not found_post:
-                                # Scroll down
+                                # 스크롤 다운
                                 scroll_count += 1
                                 print(f"Scrolling down ({scroll_count}/{max_scrolls})")
                                 
@@ -186,12 +186,12 @@ def main():
                                 time.sleep(2)  # Wait after scrolling
                         
                         if found_post:
-                            # Try to extract view count using only Approach 1 - direct child navigation
+                            # 방법 1만 사용하여 조회수 추출 시도 - 직접 자식 요소 탐색
                             try:
                                 print("Found post link, attempting to extract view count...")
                                 
-                                # Approach 1: Direct child elements navigation with JavaScript to avoid selector issues
-                                # Updated path: div[2]/div[2]/div/div/div/span/span
+                                # 방법 1: 선택자 문제를 피하기 위해 JavaScript로 직접 자식 요소 탐색
+                                # 업데이트된 경로: div[2]/div[2]/div/div/div/span/span
                                 print("Using JavaScript DOM navigation approach with updated path...")
                                 view_count = post_link_element.evaluate("""
                                     link => {
@@ -272,37 +272,37 @@ def main():
                     else:
                         print("Username not found in post info, skipping view count collection")
                     
-                    # Store view count in result data
+                    # 결과 데이터에 조회수 저장
                     result_data["post_info"]["views"] = view_count
                     
-                    # Step 4: Collect comments (using the same browser session)
+                    # 4단계: 댓글 수집 (같은 브라우저 세션 사용)
                     print("\n4. Collecting comments...")
                     
-                    # Navigate to the post URL
+                    # 게시물 URL로 이동
                     print("\nNavigating to the post page for comment collection...")
                     
-                    # First visit Instagram homepage again to maintain session
+                    # 세션 유지를 위해 먼저 인스타그램 홈페이지 다시 방문
                     page.goto("https://www.instagram.com/")
                     print("Visited homepage to ensure session continuity")
                     time.sleep(2)
                     
-                    # Now go to the post URL
+                    # 이제 게시물 URL로 이동
                     print(f"Going to post URL: {url}")
                     page.goto(url)
                     print("Waiting 5 seconds for post page to fully load...")
                     time.sleep(5)  # Longer wait for better stability
                     
-                    # Collect comments
+                    # 댓글 수집
                     comments_data = collect_instagram_comments(page, url)
                     
-                    # Add comment info to result data
+                    # 결과 데이터에 댓글 정보 추가
                     result_data["comments"] = comments_data["comments"]
                     result_data["metadata"]["comments_collected"] = len(comments_data["comments"])
                     result_data["metadata"]["total_scrolls"] = comments_data["metadata"]["total_scrolls"]
                     
                     print(f"Total of {len(comments_data['comments'])} comments were collected.")
                 
-                # Short pause to view the page before automatically closing
+                # 자동 종료 전 페이지를 볼 수 있도록 짧게 일시 정지
                 print("Browser will close automatically in 3 seconds...")
                 time.sleep(3)
                 
@@ -312,11 +312,11 @@ def main():
             finally:
                 browser.close()
     else:
-        # Skip login, view count, and comment collection if not logged in
+        # 로그인하지 않은 경우 조회수 및 댓글 수집 건너뛰기
         print("Login credentials not provided. Skipping view count and comment collection.")
         result_data["post_info"]["views"] = None
     
-    # Step 5: Save results as JSON (final step)
+    # 5단계: 결과를 JSON으로 저장 (마지막 단계)
     print("\n5. Saving collected data...")
     saved_file = save_to_json(result_data, output_file, logger)
     

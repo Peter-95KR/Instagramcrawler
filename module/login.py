@@ -3,15 +3,15 @@ import time
 
 def instagram_login(page, username, password):
     """
-    Perform Instagram login with the given credentials
+    인스타그램에 제공된 자격 증명으로 로그인하는 함수
     
     Args:
-        page: Playwright page instance
-        username: Instagram username
-        password: Instagram password
+        page: Playwright 페이지 인스턴스
+        username: 인스타그램 사용자 이름
+        password: 인스타그램 비밀번호
         
     Returns:
-        bool: True if login was successful, False otherwise
+        bool: 로그인이 성공하면 True, 그렇지 않으면 False
     """
     try:
         # 1단계: 인스타그램 로그인

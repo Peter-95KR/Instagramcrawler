@@ -6,14 +6,14 @@ import json
 
 def collect_instagram_comments(page, post_url):
     """
-    Collect comments from an Instagram post
+    인스타그램 게시물의 댓글을 수집하는 함수
     
     Args:
-        page: Playwright page instance
-        post_url: URL of the Instagram post to scrape
+        page: Playwright 페이지 인스턴스
+        post_url: 스크래핑할 인스타그램 게시물의 URL
         
     Returns:
-        dict: Dictionary containing collected comments and metadata
+        dict: 수집된 댓글과 메타데이터를 포함하는 사전
     """
     try:
         # 2단계: 지정된 릴 페이지로 이동
@@ -243,13 +243,13 @@ def collect_instagram_comments(page, post_url):
 
 def save_comments_to_file(comments_data):
     """
-    Save the collected comments to a JSON file
+    수집된 댓글을 JSON 파일로 저장하는 함수
     
     Args:
-        comments_data: Dictionary containing comments data and metadata
+        comments_data: 댓글 데이터와 메타데이터를 포함하는 사전
         
     Returns:
-        str: Path to the saved JSON file
+        str: 저장된 JSON 파일의 경로
     """
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     final_json_file = f"instagram_comments_{timestamp}_final.json"
